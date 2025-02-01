@@ -1,9 +1,9 @@
-from importlib.metadata import distribution, PackageNotFoundError
-from pathlib import Path
+import os
 import subprocess
 import sys
-import os
 import re
+from pathlib import Path
+from importlib.metadata import distribution, PackageNotFoundError
 
 def get_enabled_subdirectories_with_files(base_directory):
     """Gets subdirectories containing requirements.txt and install.py files."""
@@ -37,7 +37,7 @@ def compare_versions(installed_version, required_version):
     """Compares two version strings."""
     installed_parts = list(map(int, re.findall(r'\d+', installed_version)))
     required_parts = list(map(int, re.findall(r'\d+', required_version)))
-    
+
     for installed, required in zip(installed_parts, required_parts):
         if installed < required:
             return -1
@@ -58,7 +58,7 @@ def install_requirements(requirements_file_path, installed_packages):
                 line = line.strip()
                 if not line or line in installed_packages:
                     continue
-                
+
                 match = re.match(r'^([^=><]+)([<>=!]+)(.+)', line)
                 if match:
                     package_name, comparison_operator, required_version = map(str.strip, match.groups())
@@ -81,7 +81,8 @@ def log_installed_packages(installed_packages, log_file_path):
     """Logs installed packages to a file."""
     with open(log_file_path, 'w') as f:
         for package in installed_packages:
-            f.write(package + '\n')
+            if '[' in package or ']' in package or package.startswith('git+'):  # filter name
+                f.write(package + '\n')
 
 def main():
     """Main function that searches for and installs libraries."""
