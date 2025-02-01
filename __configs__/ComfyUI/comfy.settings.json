@@ -29,7 +29,7 @@
                     "BACKGROUND_IMAGE": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQMAAABKLAcXAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAZQTFRFAAAAIyMjg6JHZQAAADRJREFUeJxjdDjA8ocBSjAwPlDg+8QAJRgYUeUYkMGw542GC3beaLhg542GC3beaLhg5QEAPT9LZZ9GZcYAAAAASUVORK5CYII=",
                     "CLEAR_BACKGROUND_COLOR": "#000000",
                     "NODE_TITLE_COLOR": "#bbc2c6",
-                    "NODE_SELECTED_TITLE_COLOR": "#f9e2af",
+                    "NODE_SELECTED_TITLE_COLOR": "#ffd16c",
                     "NODE_TEXT_SIZE": 14,
                     "NODE_TEXT_COLOR": "#bbc2c6",
                     "NODE_TEXT_HIGHLIGHT_COLOR": "#d1d5d7",
@@ -38,7 +38,7 @@
                     "NODE_DEFAULT_BGCOLOR": "#222222",
                     "NODE_DEFAULT_BOXCOLOR": "#89b4fa",
                     "NODE_DEFAULT_SHAPE": 2,
-                    "NODE_BOX_OUTLINE_COLOR": "#f9e2af",
+                    "NODE_BOX_OUTLINE_COLOR": "#e29fbe",
                     "NODE_BYPASS_BGCOLOR": "#db88ae",
                     "NODE_ERROR_COLOUR": "#ff6747",
                     "DEFAULT_SHADOW_COLOR": "rgba(0,0,0,0.35)",
@@ -72,5 +72,6 @@
                 }
             }
         }
-    }
+    },
+    "Comfy.TutorialCompleted": true
 }

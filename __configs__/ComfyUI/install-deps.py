@@ -1,16 +1,9 @@
-"""
-This code is a refactoring of the original code created by the author gutris1. 
-It is not an original work and is intended to improve readability and structure.
-The original version of the code can be found at the following address: 
-https://raw.githubusercontent.com/gutris1/segsmaker/refs/heads/main/config/comfyui/apotek.py
-"""
-
-import os
+from importlib.metadata import distribution, PackageNotFoundError
+from pathlib import Path
 import subprocess
 import sys
+import os
 import re
-from pathlib import Path
-from importlib.metadata import distribution, PackageNotFoundError
 
 def get_enabled_subdirectories_with_files(base_directory):
     """Gets subdirectories containing requirements.txt and install.py files."""
@@ -19,7 +12,7 @@ def get_enabled_subdirectories_with_files(base_directory):
 
     for subdir in base_path.iterdir():
         if subdir.is_dir() and not subdir.name.endswith(".disabled") and not subdir.name.startswith('.') and subdir.name != '__pycache__':
-            print(f"\033[1;34mChecking dependencies for >> '{subdir.name}'\033[0m")
+            print(f"\033[1;34mChecking dependencies >> \033[0m{subdir.name}")
             requirements_file = subdir / "requirements.txt"
             install_script = subdir / "install.py"
 
@@ -29,12 +22,14 @@ def get_enabled_subdirectories_with_files(base_directory):
     print()  # Space
     return subdirs_with_files
 
-def is_package_installed(package_name, required_version):
+def is_package_installed(package_name, required_version=None):
     """Checks if the package is installed and compares versions."""
     try:
         dist = distribution(package_name)
         installed_version = dist.version
-        return compare_versions(installed_version, required_version) >= 0
+        if required_version:
+            return compare_versions(installed_version, required_version) >= 0
+        return True
     except PackageNotFoundError:
         return False
 
@@ -50,34 +45,31 @@ def compare_versions(installed_version, required_version):
             return 1
     return len(installed_parts) - len(required_parts)
 
-def install_package(package_name, comparison_operator="", required_version=""):
-    """Installs or uninstalls a package based on its current state."""
-    if comparison_operator and required_version:
-        package_spec = f"{package_name}{comparison_operator}{required_version}"
-    else:
-        package_spec = package_name
-
+def install_package(package_spec):
+    """Installs a package."""
     print(f"\033[1;33mInstalling '{package_spec}'\033[0m")
     subprocess.run([sys.executable, "-m", "pip", "install", package_spec], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-def install_requirements(requirements_file_path):
+def install_requirements(requirements_file_path, installed_packages):
     """Installs libraries from requirements.txt."""
     if requirements_file_path.exists():
         with open(requirements_file_path, 'r') as f:
             for line in f:
                 line = line.strip()
-                if not line:
+                if not line or line in installed_packages:
                     continue
                 
                 match = re.match(r'^([^=><]+)([<>=!]+)(.+)', line)
                 if match:
                     package_name, comparison_operator, required_version = map(str.strip, match.groups())
                     if not is_package_installed(package_name, required_version):
-                        install_package(package_name, comparison_operator, required_version)
+                        install_package(f"{package_name}{comparison_operator}{required_version}")
+                        installed_packages.add(line)
                 else:
                     package_name = line.strip()
-                    if not is_package_installed(package_name, ""):
+                    if not is_package_installed(package_name):
                         install_package(package_name)
+                        installed_packages.add(package_name)
 
 def run_install_script(install_script_path):
     """Runs install.py if it exists."""
@@ -85,17 +77,33 @@ def run_install_script(install_script_path):
         print(f"\033[1;34mRunning install script from {install_script_path}...\033[0m")
         subprocess.run([sys.executable, str(install_script_path)], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+def log_installed_packages(installed_packages, log_file_path):
+    """Logs installed packages to a file."""
+    with open(log_file_path, 'w') as f:
+        for package in installed_packages:
+            f.write(package + '\n')
+
 def main():
     """Main function that searches for and installs libraries."""
     custom_nodes_directory = "custom_nodes"
+    log_file_path = "installed_packages.txt"
+    installed_packages = set()
+
+    # Load existing installed packages from log file
+    if Path(log_file_path).exists():
+        with open(log_file_path, 'r') as f:
+            installed_packages.update(line.strip() for line in f)
+
     subdirs_with_files = get_enabled_subdirectories_with_files(custom_nodes_directory)
 
     try:
         for full_path, requirements_file, install_script in subdirs_with_files:
-            install_requirements(requirements_file)
+            install_requirements(requirements_file, installed_packages)
             run_install_script(install_script)
 
-        print()  # Space
+        # Log installed packages
+        log_installed_packages(installed_packages, log_file_path)
+
     except KeyboardInterrupt:
         print("\n\033[1;31mScript interrupted by user. Exiting...\033[0m")
     except Exception as e:
