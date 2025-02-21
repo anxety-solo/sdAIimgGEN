@@ -88,11 +88,9 @@ def get_launch_command(tunnel_port):
     if UI == 'ComfyUI':
         return f'{py} main.py {base_args}'
 
-    common_args = ' --enable-insecure-extension-access --disable-console-progressbars --theme dark'
+    common_args = ' --enable-insecure-extension-access --disable-console-progressbars --theme dark --share'
     if ENV_NAME == "Kaggle":
         common_args += f' --encrypt-pass={password}'
-    else:
-        common_args += ' --share'
 
     return f'{py} launch.py {base_args}{common_args}'
 
